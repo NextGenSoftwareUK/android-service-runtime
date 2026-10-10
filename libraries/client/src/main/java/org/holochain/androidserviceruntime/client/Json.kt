@@ -40,10 +40,11 @@ object Json {
             is Boolean,
             -> value
             is Float -> value.toDouble()
-            is Byte,
-            is Short,
-            is Long,
-            -> value.toInt()
+            // Kotlin 2.x smart-casts a grouped numeric branch to Number; Kotlin 1.9 does
+            // not. Keep the conversions explicit for Unity 2022's supported toolchain.
+            is Byte -> value.toInt()
+            is Short -> value.toInt()
+            is Long -> value.toInt()
             is UByte -> value.toInt()
             is UShort -> value.toInt()
             is ULong -> value.toInt()

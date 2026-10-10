@@ -1,7 +1,6 @@
 package org.holochain.androidserviceruntime.service
 
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
+import java.util.UUID
 
 /**
  * Represents a request from an Android app to access a Holochain app.
@@ -47,7 +46,6 @@ data class PutResponse(
  *
  * @param initialNotificationId The starting notification ID to use
  */
-@OptIn(ExperimentalUuidApi::class)
 public class AppAuthorizationRequestMap(
     initialNotificationId: Int,
 ) {
@@ -82,7 +80,7 @@ public class AppAuthorizationRequestMap(
         var putResponse = this.mapContainsRequest(request)
 
         if (putResponse == null) {
-            var uuid = Uuid.random().toString()
+            var uuid = UUID.randomUUID().toString()
             var notificationId = notificationIdGenerator.next()
             putResponse = PutResponse(uuid, notificationId)
 

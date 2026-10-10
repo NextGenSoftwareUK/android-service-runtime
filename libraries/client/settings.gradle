@@ -13,10 +13,10 @@ pluginManagement {
                     useVersion("8.7.3")
                     break
                 case "org.jetbrains.kotlin.android":
-                    useVersion("2.1.10")
+                    useVersion("1.6.21")
                     break
                 case "org.jetbrains.kotlin.plugin.parcelize":
-                    useVersion("2.1.10")
+                    useVersion("1.6.21")
                     break
             }
         }

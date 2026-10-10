@@ -85,11 +85,11 @@ dependencies {
   implementation("androidx.appcompat:appcompat:1.6.0")
   implementation("com.google.android.material:material:1.7.0")
   // Coroutines
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.1")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
   // Uniffi
   implementation("net.java.dev.jna:jna:5.16.0@aar")
-  implementation("org.jetbrains.kotlin:kotlin-reflect:2.1.10")
+  implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.21")
   // Tests
   testImplementation("junit:junit:4.13.2")
   androidTestImplementation("androidx.test.ext:junit:1.2.1")
