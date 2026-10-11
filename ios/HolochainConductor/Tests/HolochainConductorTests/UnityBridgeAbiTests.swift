@@ -58,7 +58,8 @@ final class UnityBridgeAbiTests: XCTestCase {
 
         // Sign through the C ABI with this install's agent key.
         let runtime = try await currentRuntime()
-        let app = try XCTUnwrap(try await runtime.listApps().first { $0.installedAppId == appId })
+        let apps = try await runtime.listApps()
+        let app = try XCTUnwrap(apps.first { $0.installedAppId == appId })
         var cellId: CellIdFfi?
         for cells in app.cellInfo.values { for cell in cells { if case .provisioned(let p) = cell { cellId = p.cellId } } }
         let cell = try XCTUnwrap(cellId)

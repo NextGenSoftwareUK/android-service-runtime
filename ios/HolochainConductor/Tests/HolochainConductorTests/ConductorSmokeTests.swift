@@ -31,7 +31,8 @@ final class ConductorSmokeTests: XCTestCase {
         XCTAssertGreaterThan(auth.port, 0)
 
         // 3. Cell id from the app info.
-        let app = try XCTUnwrap(try await runtime.listApps().first { $0.installedAppId == appId })
+        let apps = try await runtime.listApps()
+        let app = try XCTUnwrap(apps.first { $0.installedAppId == appId })
         var cellId: CellIdFfi?
         for cells in app.cellInfo.values {
             for cell in cells { if case .provisioned(let provisioned) = cell { cellId = provisioned.cellId } }
