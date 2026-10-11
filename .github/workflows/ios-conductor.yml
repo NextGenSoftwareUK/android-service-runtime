@@ -23,6 +23,9 @@ jobs:
       CRATE: holochain-conductor-runtime-ffi
       LIB: libholochain_conductor_runtime_ffi
       FEATURES: --no-default-features --features wasm-interpreter
+      # One minimum iOS for rustc and the C deps (cc/aws-lc-sys); without it C objects target the
+      # SDK's iOS 18.5 while Rust links for an older minimum, and ___chkstk_darwin goes missing.
+      IPHONEOS_DEPLOYMENT_TARGET: "15.0"
     steps:
       - uses: actions/checkout@v4
 
