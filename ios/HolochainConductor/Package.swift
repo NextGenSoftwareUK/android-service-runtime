@@ -18,6 +18,8 @@ let package = Package(
             linkerSettings: [
                 .linkedFramework("Security"),
                 .linkedFramework("SystemConfiguration"),
+                // iroh watches network changes through Network.framework (nw_path_monitor_*).
+                .linkedFramework("Network"),
                 .linkedFramework("CoreFoundation"),
                 .linkedLibrary("resolv"),
             ]

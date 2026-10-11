@@ -108,6 +108,9 @@ All calls are asynchronous: pass a request id and a C callback, invoked exactly 
 | `holo_ios_sign_zome_call(id, provenance, dna, agent, zome, fn, capSecret, payload, nonce, expiresAt, cb)` | signed bytes + 64-byte signature |
 | `holo_ios_stop(id, cb)` | ok or error |
 
+**Link these system frameworks/libraries** into the app (Unity: the UnityFramework target): `Security`,
+`SystemConfiguration`, `CoreFoundation`, `Network` (iroh uses `nw_path_monitor_*`) and `libresolv`.
+
 The keystore passphrase is a random 32-byte secret per install in the Keychain
 (`kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`). Data lives in Application Support/holochain,
 excluded from backup.
