@@ -66,6 +66,19 @@ jobs:
           (cd out/swift && zip -qr ../HolochainConductorSwift.zip *.swift)
           ls -la out target/aarch64-apple-ios/release/$LIB.a target/aarch64-apple-ios-sim/release/$LIB.a
 
+      - name: Simulator smoke test (start, install OASIS hApp, signed zome call)
+        run: |
+          P=ios/HolochainConductor
+          cp -R out/HolochainConductor.xcframework $P/
+          cp out/swift/*.swift $P/Sources/HolochainConductor/
+          cd $P
+          xcodebuild test \
+            -scheme HolochainConductor \
+            -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
+            -resultBundlePath ../../out/smoke-test.xcresult \
+            | tee ../../out/smoke-test.log | grep -E "Test Case|error:|passed|failed|TEST (SUCCEEDED|FAILED)"
+          test ${PIPESTATUS[0]} -eq 0
+
       - name: Build manifest
         run: |
           cat > out/build-manifest.json <<EOF
@@ -81,6 +94,13 @@ jobs:
           }
           EOF
           cat out/build-manifest.json
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-test-log
+          path: out/smoke-test.log
+          if-no-files-found: ignore
 
       - uses: actions/upload-artifact@v4
         with:
