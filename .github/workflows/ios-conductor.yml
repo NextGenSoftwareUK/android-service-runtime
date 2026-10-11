@@ -74,9 +74,12 @@ jobs:
           cp -R out/HolochainConductor.xcframework $P/
           cp out/swift/*.swift $P/Sources/HolochainConductor/
           cd $P
+          # Use whichever iPhone simulator this runner image has (device names/OS versions vary by image).
+          SIM=$(xcrun simctl list devices available -j | python3 -c "import json,sys; d=json.load(sys.stdin)['devices']; print(next(x['udid'] for r,ds in sorted(d.items(), reverse=True) if 'iOS' in r for x in ds if x['name'].startswith('iPhone')))")
+          echo "Simulator: $SIM"
           xcodebuild test \
             -scheme HolochainConductor \
-            -destination 'platform=iOS Simulator,OS=latest,name=iPhone 16' \
+            -destination "id=$SIM" \
             -resultBundlePath ../../out/smoke-test.xcresult \
             | tee ../../out/smoke-test.log | grep -E "Test Case|error:|passed|failed|TEST (SUCCEEDED|FAILED)"
           test ${PIPESTATUS[0]} -eq 0
