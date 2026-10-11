@@ -63,6 +63,8 @@ jobs:
             -library target/aarch64-apple-ios-sim/release/$LIB.a -headers out/headers \
             -output out/HolochainConductor.xcframework
           (cd out && zip -qry HolochainConductor.xcframework.zip HolochainConductor.xcframework)
+          # Ship the Unity C-ABI bridge with the generated bindings; they compile as one module.
+          cp ios/HolochainConductor/Sources/HolochainConductor/HolochainUnityBridge.swift out/swift/
           (cd out/swift && zip -qr ../HolochainConductorSwift.zip *.swift)
           ls -la out target/aarch64-apple-ios/release/$LIB.a target/aarch64-apple-ios-sim/release/$LIB.a
 

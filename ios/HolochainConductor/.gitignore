@@ -1,4 +1,4 @@
 HolochainConductor.xcframework/
-Sources/HolochainConductor/*.swift
+Sources/HolochainConductor/holochain_conductor_runtime_*.swift
 .build/
 .swiftpm/

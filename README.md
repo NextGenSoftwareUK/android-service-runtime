@@ -1,5 +1,7 @@
 # Holochain Android Runtime
 
+> **OASIS fork:** the `oasis/holochain-0.7` branch adds Holochain 0.7 fixes and an iOS conductor build. See [docs/OASIS-BUILDS.md](docs/OASIS-BUILDS.md).
+
 An Android app and Tauri plugins that provide an integrated approach for running Holochain apps on mobile devices. This includes:
 - An Android app for managing a system-wide Holochain conductor running as an [Android Foreground Service](https://developer.android.com/develop/background-work/services/fgs). The Foreground Service can run persistently, even when the app is closed, ensuring that you can be a reliable contributor to the peer-to-peer networks of your apps.
 - A Tauri plugin used by that Android app under-the-hood, for managing the system-wide Holochain conductor service.
