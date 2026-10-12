@@ -17,6 +17,7 @@ Upstream fixes are offered back as pull requests; see [Upstream status](#upstrea
 | `wasm-jit` / `wasm-interpreter` features on the runtime crates | iOS forbids JIT; Holochain 0.7's `wasmer-wasmi` interpreter runs zome WASM without it | to offer |
 | `ios-conductor` workflow + `ios/HolochainConductor` Swift package | Builds, tests and packages the iOS conductor on macOS CI | to offer (minus the Unity bridge) |
 | `ios/.../HolochainUnityBridge.swift` | C ABI for Unity's `[DllImport("__Internal")]` | OASIS-only |
+| `crates/runtime/src/ios_lair.rs` | iOS container paths exceed the 104-byte domain-socket limit; lair's socket moves to a short path | to offer |
 
 Android keeps Holochain's default engine (Cranelift JIT). Only iOS builds use the interpreter.
 
@@ -121,7 +122,7 @@ excluded from backup.
 |---|---|
 | `oasis-runtime-v0.2.0-holochain-0.7` | Android shared runtime APKs (arm64, x86_64), debug-signed |
 | `oasis-ios-conductor-vX.Y.Z` | iOS conductor (workflow output) |
-| `oasis-holochain-0.7-vX.Y.Z` | Combined Android + iOS release for OASIS |
+| `oasis-holochain-0.7-vX.Y.Z` | Combined Android + iOS release for OASIS. First: [`oasis-holochain-0.7-v1.0.0`](https://github.com/NextGenSoftwareUK/android-service-runtime/releases/tag/oasis-holochain-0.7-v1.0.0) |
 
 The OASIS repo pins what it consumes: `Scripts/holochain_android_runtime.version.json` (branch commit for the
 embedded Android libraries) and `Scripts/holochain_ios_runtime.version.json` (iOS release tag, commit, SHA-256s).
@@ -130,4 +131,4 @@ embedded Android libraries) and `Scripts/holochain_ios_runtime.version.json` (iO
 
 - [#149](https://github.com/holochain/android-service-runtime/pull/149): client parcelers for the 0.7 FFI types.
 - [#150](https://github.com/holochain/android-service-runtime/pull/150): Tauri service plugin network config.
-- iOS support (interpreter feature, macOS workflow, Swift smoke test): to be offered once proven on the simulator.
+- iOS support (interpreter feature, lair socket fix, macOS workflow, Swift simulator smoke test): proven on the simulator; offered upstream from branch `feat/ios-conductor`.
