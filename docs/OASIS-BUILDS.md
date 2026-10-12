@@ -131,4 +131,4 @@ embedded Android libraries) and `Scripts/holochain_ios_runtime.version.json` (iO
 
 - [#149](https://github.com/holochain/android-service-runtime/pull/149): client parcelers for the 0.7 FFI types.
 - [#150](https://github.com/holochain/android-service-runtime/pull/150): Tauri service plugin network config.
-- iOS support (interpreter feature, lair socket fix, macOS workflow, Swift simulator smoke test): proven on the simulator; offered upstream from branch `feat/ios-conductor`.
+- iOS support (interpreter feature, lair socket fix, macOS workflow, Swift simulator smoke test): proven on the simulator; offered upstream: [#151](https://github.com/holochain/android-service-runtime/pull/151).
