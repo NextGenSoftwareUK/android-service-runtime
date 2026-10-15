@@ -37,12 +37,21 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           key: ios-wasmi
+      - name: Require locked Holochain 0.7.1
+        run: |
+          python3 - <<'PY'
+          import tomllib
+          lock=tomllib.load(open('Cargo.lock','rb'))
+          for name in ('holochain','holochain_conductor_api','holochain_types','holochain_keystore'):
+              versions={p['version'] for p in lock['package'] if p['name']==name}
+              assert versions=={'0.7.1'}, (name,versions)
+          PY
 
       - name: Build for iOS devices (aarch64-apple-ios)
-        run: cargo build -p $CRATE --release $FEATURES --target aarch64-apple-ios
+        run: cargo build --locked -p $CRATE --release $FEATURES --target aarch64-apple-ios
 
       - name: Build for the iOS simulator (aarch64-apple-ios-sim)
-        run: cargo build -p $CRATE --release $FEATURES --target aarch64-apple-ios-sim
+        run: cargo build --locked -p $CRATE --release $FEATURES --target aarch64-apple-ios-sim
 
       - name: Generate Swift bindings
         run: |
@@ -92,6 +101,7 @@ jobs:
             "commit": "${{ github.sha }}",
             "ref": "${{ github.ref_name }}",
             "holochainCompatibility": "0.7",
+            "holochainVersion": "0.7.1",
             "wasmEngine": "wasmi (interpreter, no JIT)",
             "targets": ["aarch64-apple-ios", "aarch64-apple-ios-sim"],
             "xcframeworkSha256": "$(shasum -a 256 out/HolochainConductor.xcframework.zip | cut -d' ' -f1)",

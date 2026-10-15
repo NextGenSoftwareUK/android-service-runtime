@@ -1,0 +1,36 @@
+name: Pin mobile Holochain lockfile
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: pin-mobile-holochain
+  cancel-in-progress: false
+jobs:
+  resolve:
+    if: github.ref == 'refs/heads/oasis/holochain-0.7'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Resolve exact mobile conductor patch release
+        run: cargo update -p holochain -p holochain_conductor_api -p holochain_types -p holochain_keystore
+      - name: Verify exact resolved versions
+        run: |
+          python3 - <<'PY'
+          import tomllib
+          lock=tomllib.load(open('Cargo.lock','rb'))
+          for name in ('holochain','holochain_conductor_api','holochain_types','holochain_keystore'):
+              versions={p['version'] for p in lock['package'] if p['name']==name}
+              assert versions=={'0.7.1'}, (name,versions)
+          PY
+          git diff --check
+      - name: Commit reviewed-scope lockfile resolution
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add Cargo.lock
+          if ! git diff --cached --quiet; then
+            git commit -m "Lock Android and iOS conductor crates to 0.7.1"
+            git push origin HEAD:oasis/holochain-0.7
+          fi
