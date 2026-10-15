@@ -1,6 +1,9 @@
 name: Pin mobile Holochain lockfile
 on:
   workflow_dispatch:
+  push:
+    branches: [oasis/holochain-0.7]
+    paths: ['.github/workflows/pin-mobile-holochain.yml']
 permissions:
   contents: write
 concurrency:
