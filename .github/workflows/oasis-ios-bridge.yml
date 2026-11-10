@@ -1,0 +1,58 @@
+name: "oasis-ios-bridge"
+# Builds HoloNETIosBridge.xcframework: the C ABI bridge (holo_ios_*) compiled together with the Holochain 0.7 conductor static libraries,
+# so a .NET iOS app can link it (NativeReference) and call it with P/Invoke, without compiling Swift. Takes the conductor from an
+# existing oasis-ios-conductor release. Unity compiles the same Swift files into its Xcode project instead.
+on:
+  push:
+    tags:
+      - "oasis-ios-bridge-v*"
+
+permissions:
+  contents: write
+
+env:
+  CONDUCTOR_TAG: oasis-ios-conductor-v0.7.1
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download the conductor release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p in && cd in
+          gh release download "$CONDUCTOR_TAG" --repo "${{ github.repository }}" -p HolochainConductor.xcframework.zip -p HolochainConductorSwift.zip
+          unzip -q HolochainConductor.xcframework.zip && unzip -q -o HolochainConductorSwift.zip -d swift
+          ls -R . | head -40
+      - name: Compile the Swift bridge for device and simulator and merge with the conductor
+        run: |
+          set -e
+          mkdir -p out/dev out/sim
+          build() { # name sdk target slice
+            sdk_path=$(xcrun --sdk "$2" --show-sdk-path)
+            xcrun swiftc -emit-library -static -parse-as-library -module-name HolochainConductor -O \
+              -target "$3" -sdk "$sdk_path" -I "in/HolochainConductor.xcframework/$4/Headers" \
+              in/swift/*.swift -o "out/$1/libbridge.a"
+            libtool -static -o "out/$1/libHoloNETIosBridge.a" "out/$1/libbridge.a" "in/HolochainConductor.xcframework/$4/libholochain_conductor_runtime_ffi.a"
+            rm "out/$1/libbridge.a"
+          }
+          build dev iphoneos arm64-apple-ios15.0 ios-arm64
+          build sim iphonesimulator arm64-apple-ios15.0-simulator ios-arm64-simulator
+          nm -g out/dev/libHoloNETIosBridge.a 2>/dev/null | grep holo_ios_ | head
+          xcodebuild -create-xcframework -library out/dev/libHoloNETIosBridge.a -library out/sim/libHoloNETIosBridge.a -output out/HoloNETIosBridge.xcframework
+          (cd out && zip -qry HoloNETIosBridge.xcframework.zip HoloNETIosBridge.xcframework && shasum -a 256 HoloNETIosBridge.xcframework.zip > SHA256SUMS.txt)
+          ls -l out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HoloNETIosBridge
+          path: out/HoloNETIosBridge.xcframework.zip
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" out/HoloNETIosBridge.xcframework.zip out/SHA256SUMS.txt --repo "${{ github.repository }}" --verify-tag --prerelease \
+            --title "HoloNET iOS bridge (Holochain 0.7, built on $CONDUCTOR_TAG)" \
+            --notes "HoloNETIosBridge.xcframework: the holo_ios_* C ABI plus the Holochain 0.7 conductor static libraries (device and Apple-silicon simulator), for .NET iOS apps to link and P/Invoke. The conductor runs on the simulator in OASIS CI; this bridge build is not yet proven on a physical iPhone or from a .NET app."
