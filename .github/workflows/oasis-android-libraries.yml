@@ -34,6 +34,7 @@ jobs:
 
       - name: Build client and service (arm64)
         run: |
+          find . -name '*.sh' -not -path './node_modules/*' -exec chmod +x {} +; chmod +x libraries/*/gradlew
           nix develop --no-update-lock-file --command bash -c "pnpm install --frozen-lockfile || pnpm install; \
             pnpm run build:single-target:runtime-types-ffi aarch64-linux-android && pnpm run build:client && pnpm run publish:local:client \
             && pnpm run build:single-target:runtime-ffi aarch64-linux-android && pnpm run build:service && pnpm run publish:local:service"
