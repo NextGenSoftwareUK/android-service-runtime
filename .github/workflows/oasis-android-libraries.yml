@@ -1,0 +1,71 @@
+name: "oasis-android-libraries"
+# Builds the Holochain 0.7 Android libraries (client, service, bridge + dependencies) and publishes them as a GitHub release,
+# so apps (the HoloNET dotnet templates, OASIS Edge) can use them without building Rust. Mirrors OASIS Scripts/build_holochain_android_runtime.ps1.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to create (pre-release), e.g. oasis-android-libs-v1.0.0"
+        required: true
+        default: "oasis-android-libs-v1.0.0"
+
+jobs:
+  build:
+    permissions:
+      contents: write
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          android: false
+
+      - name: Install nix
+        uses: cachix/install-nix-action@v27
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_path: nixpkgs=channel:nixos-24.05
+
+      - uses: cachix/cachix-action@v15
+        with:
+          name: holochain-ci
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build client and service (arm64)
+        run: |
+          nix develop --no-update-lock-file --command bash -c "pnpm install --frozen-lockfile || pnpm install; \
+            pnpm run build:single-target:runtime-types-ffi aarch64-linux-android && pnpm run build:client && pnpm run publish:local:client \
+            && pnpm run build:single-target:runtime-ffi aarch64-linux-android && pnpm run build:service && pnpm run publish:local:service"
+
+      - name: Build the bridge
+        run: |
+          nix develop --no-update-lock-file --command bash -c "cd libraries/client && ./gradlew -p ../../oasis/android-bridge :bridge:assembleRelease :bridge:exportReleaseRuntimeDependencies"
+
+      - name: Package
+        run: |
+          set -e
+          mkdir -p out/deps
+          cp libraries/service/build/outputs/aar/service-release.aar out/holochain-service.aar
+          cp libraries/client/build/outputs/aar/client-release.aar out/holochain-client.aar
+          cp oasis/android-bridge/bridge/build/outputs/aar/bridge-release.aar out/holonet-android-bridge.aar
+          cp oasis/android-bridge/bridge/build/unityRuntimeDependencies/* out/deps/
+          unzip -l out/holochain-service.aar | grep -q jni/arm64-v8a/libholochain_conductor_runtime_ffi.so
+          (cd out/deps && zip -q ../holochain-android-dependencies.zip *)
+          rm -rf out/deps
+          cat > out/build-manifest.json <<JSON
+          {"schemaVersion":1,"repository":"${{ github.repository }}","branch":"${{ github.ref_name }}","commit":"${{ github.sha }}","holochainCompatibility":"0.7","androidAbi":"arm64-v8a"}
+          JSON
+          (cd out && sha256sum * > SHA256SUMS.txt)
+          ls -l out
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ inputs.tag }}" out/* --repo "${{ github.repository }}" --target "${{ github.sha }}" --prerelease \
+            --title "OASIS Android libraries (Holochain 0.7, arm64)" \
+            --notes "holochain-client.aar, holochain-service.aar (the conductor, ~100 MB, arm64 only), holonet-android-bridge.aar and holochain-android-dependencies.zip (the bridge's runtime dependencies). Used by the HoloNET dotnet new templates for Android and OASIS Edge. Debug-free release build, not yet run on a physical phone."
