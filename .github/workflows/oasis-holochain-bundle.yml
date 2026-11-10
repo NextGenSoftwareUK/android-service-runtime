@@ -1,0 +1,48 @@
+name: "oasis-holochain-bundle"
+# Assembles the flagship release "Holochain 0.7 for OASIS: Android + iOS" from the already-built per-piece releases (nothing is rebuilt),
+# with one SHA256SUMS.txt and the notes in oasis/releases/oasis-holochain-0.7-bundle.md.
+on:
+  push:
+    tags:
+      - "oasis-holochain-0.7-v1.[1-9]*"
+
+permissions:
+  contents: write
+
+env:
+  APK_TAG: oasis-holochain-0.7-v1.0.0
+  ANDROID_LIBS_TAG: oasis-android-libs-v1.0.0
+  IOS_CONDUCTOR_TAG: oasis-ios-conductor-v0.7.1
+  IOS_BRIDGE_TAG: oasis-ios-bridge-v1.0.0
+
+jobs:
+  bundle:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Gather the assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          R="${{ github.repository }}"
+          mkdir -p out dl/apk dl/libs dl/conductor dl/bridge
+          gh release download "$APK_TAG" --repo "$R" --dir dl/apk -p '*.apk' -p build-manifest.json
+          gh release download "$ANDROID_LIBS_TAG" --repo "$R" --dir dl/libs -p '*.aar' -p 'holochain-android-dependencies.zip' -p build-manifest.json
+          gh release download "$IOS_CONDUCTOR_TAG" --repo "$R" --dir dl/conductor
+          gh release download "$IOS_BRIDGE_TAG" --repo "$R" --dir dl/bridge -p 'HoloNETIosBridge.xcframework.zip'
+          cp dl/apk/*.apk out/
+          cp dl/libs/*.aar dl/libs/holochain-android-dependencies.zip out/
+          cp dl/conductor/HolochainConductor.xcframework.zip dl/conductor/HolochainConductorSwift.zip out/
+          cp dl/bridge/HoloNETIosBridge.xcframework.zip out/
+          cp dl/libs/build-manifest.json out/android-build-manifest.json
+          cp dl/conductor/build-manifest.json out/ios-build-manifest.json
+          (cd out && sha256sum * > SHA256SUMS.txt)
+          ls -l out
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" out/* --repo "${{ github.repository }}" --verify-tag --prerelease \
+            --title "Holochain 0.7 for OASIS: Android + iOS (${{ github.ref_name }})" \
+            --notes-file oasis/releases/oasis-holochain-0.7-bundle.md
