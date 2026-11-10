@@ -11,8 +11,13 @@ jobs:
     permissions:
       contents: write
     runs-on: ubuntu-22.04
+    env:
+      GRADLE_USER_HOME: ${{ github.workspace }}/.gradle-user-home
     steps:
       - uses: actions/checkout@v4
+      - name: Gradle properties (AndroidX)
+        run: |
+          mkdir -p "$GRADLE_USER_HOME" && echo 'android.useAndroidX=true' > "$GRADLE_USER_HOME/gradle.properties"
 
       - name: Free disk space
         uses: jlumbroso/free-disk-space@main
